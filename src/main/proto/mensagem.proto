@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+option java_package = "br.ufs.dcomp.ChatRabbitMQ";
+option java_outer_classname = "MensagemProto";
+
+message Mensagem{
+     string emissor = 1; // Nome do emissor
+     string data = 2; // Data de envio
+     string hora = 3; // Hora de envio
+     string grupo = 4; // Informa o nome do grupo, se a mensagem for para um grupo
+     Conteudo conteudo = 5;
+}
+
+message Conteudo{
+     string tipo = 1; // Tipo do conteï¿½do no padrï¿½o de tipos MIME. Exemplos: "text/plain", "image/png" 
+     bytes corpo = 2; // Sequï¿½ncia de bytes que compï¿½e o corpo da mensagem
+     string nome = 3; // Nome do conteï¿½do, se existente. Exemplos: "logo_ufs.png", "index.html"
+}
+
+
+
+
+
+
+
+
+
+//MRI (servico de nome) faz mapeamento entre nome do objeto e algum objeto.
+
+//ENVIAR ARQUIVO - P2
+//  -Usar FIle pra pegar o arquivo. Colocar em um vetor de bytes
+//  Path fileLocation = PAths.get ("caminho")
+  
+//  byte[] data = FIles.readAllBytes(fileLocation) -->Colocar no protocolbuffers
+//Protocolbuffers usa byteString. Ã‰ preciso mapear para vetor de byte. Usar metodo copyFRom -> Gera o byteString
+
+//Continuacao
+
+
+//ByteStrnig bs = ByteString.copyFRom(data);
+//...
+//...SetCorpo(bs)
+
+//byte[] buf -- Obtido a partir do ProtoBUf colocar no setCorpo (o bs)
+
+//canal.basicPublish(..., buf)--ENviando. basicPublish so termina dps que terminar
