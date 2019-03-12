@@ -19,7 +19,7 @@ public class Chat {
   private static final DateFormat HORA = new SimpleDateFormat("HH:mm");//HORA
   static String user_Destination = ""; //Guarda nome do destino das msgs
   static Calendar cal = null;//calendario
-    
+
 
   public static void main(String[] argv) throws Exception {
     
@@ -35,6 +35,7 @@ public class Chat {
     System.out.print("USER: ");
         final String user_Queue = scan.nextLine();
     channel.queueDeclare(user_Queue, false, false, false, null);
+
     createDir(user_Queue); //cria pasta para guardar downloads do usuario
     String user_Queue_files = user_Queue + "F";
     channel.queueDeclare(user_Queue, false, false, false, null);//cria fila
