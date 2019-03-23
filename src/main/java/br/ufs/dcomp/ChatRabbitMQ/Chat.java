@@ -10,7 +10,16 @@ import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.io.File; 
+import java.io.File;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+import com.google.gson.Gson;
 
 
 public class Chat {
@@ -19,7 +28,8 @@ public class Chat {
   private static final DateFormat HORA = new SimpleDateFormat("HH:mm");//HORA
   static String user_Destination = ""; //Guarda nome do destino das msgs
   static Calendar cal = null;//calendario
-
+  private static String saida;
+    
 
   public static void main(String[] argv) throws Exception {
     
@@ -35,7 +45,6 @@ public class Chat {
     System.out.print("USER: ");
         final String user_Queue = scan.nextLine();
     channel.queueDeclare(user_Queue, false, false, false, null);
-
     createDir(user_Queue); //cria pasta para guardar downloads do usuario
     String user_Queue_files = user_Queue + "F";
     channel.queueDeclare(user_Queue, false, false, false, null);//cria fila
@@ -96,6 +105,14 @@ public class Chat {
                   String fileName = message.substring(8);
                   System.out.println("Enviando \"" + fileName + "\" para " + user_Destination + ".");
                   uploadFile(fileName, destination, channel_file, user_Queue, grupo);
+            }else if(message.contains("listGroups")){
+                String path = "/api/queues/%2F/"+user_Queue+"/bindings";
+                GetREST(path, "source");
+            }
+            else if(message.contains("listUsers")){
+                String group = message.substring(11);
+                String path = "/api/exchanges/%2F/"+group+"/bindings/source";
+                GetREST(path, "destination");
             }
             
         } else //Envia mensagem
@@ -219,8 +236,66 @@ public class Chat {
   static void createDir(String user){
       new File(user + "_downloads").mkdir();
   }
-
-
-
   
+  
+  static void GetREST(String path, String parameter)
+    {
+        try {
+            
+            // JAVA 8 como pré-requisito (ver README.md)
+            
+            String username = "danielle";
+            String password = "danielle";
+     
+            String usernameAndPassword = username + ":" + password;
+            String authorizationHeaderName = "Authorization";
+            String authorizationHeaderValue = "Basic " + java.util.Base64.getEncoder().encodeToString( usernameAndPassword.getBytes() );
+     
+            // Perform a request
+            String restResource = "http://LB-HTTP-ca73cdb8bbbb3b31.elb.us-east-1.amazonaws.com";
+            Client client = ClientBuilder.newClient();
+            Response resposta = client.target( restResource )
+            	.path(path)	
+            	.request(MediaType.APPLICATION_JSON)
+                .header( authorizationHeaderName, authorizationHeaderValue ) // The basic authentication header goes here
+                .get();     // Perform a get
+           
+            if (resposta.getStatus() == 200) {
+                
+            	String json = resposta.readEntity(String.class);
+            	
+            	JSONParser jsonParser = new JSONParser();
+            	Object obj = jsonParser.parse(json);
+            	JSONArray arr = (JSONArray) obj;
+            	setSaida("");
+            	arr.forEach( item -> getAtributo((JSONObject) item, parameter));
+            	
+            	//Retira a vígula do final da exibição
+            	if (saida.length() > 0) {
+                    saida = saida.substring (0, saida.length() - 2);
+                }
+            	System.out.println(saida);
+            	
+            }    
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+    }
+    
+    private static void getAtributo(JSONObject obj, String atributo){
+        System.out.print(saida);
+        String str = (String) obj.get(atributo); 
+        if(str.equals("") == false)
+            setSaida(str + ", ");
+    }
+    
+    private static String getSaida(){
+        return saida;
+    }
+    
+    private static void setSaida(String str){
+        saida = str;
+    }
+
 }
